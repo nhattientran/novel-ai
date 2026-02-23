@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-23
 **Priority:** High
-**Status:** ⬜ TODO
+**Status:** ✅ COMPLETED
 **Estimate:** M–L (2–5 days)
 **Depends on:** Phase 01
 
@@ -189,23 +189,23 @@ DETACH DELETE sc, s;
 - **ImageUpload**: file input → upload → show preview.
 
 ## Todo List
-- [ ] Create Neo4j story/scene constraints migration
-- [ ] Implement Story domain model
-- [ ] Implement local file storage for images
-- [ ] Implement upload endpoint with validation
-- [ ] Implement story repository (create, list, get, update, delete)
-- [ ] Implement story service
-- [ ] Implement story CRUD handlers
-- [ ] Update router with story + upload routes
-- [ ] Implement frontend stories API client
-- [ ] Implement frontend uploads API client
-- [ ] Implement Pinia stories store
-- [ ] Build StoryListPage UI
-- [ ] Build StoryEditPage UI
-- [ ] Build StoryCard component
-- [ ] Build ImageUpload component
-- [ ] Add StoryEditPage route
-- [ ] Test: create → edit → delete story flow
+- [x] Create Neo4j story/scene constraints migration
+- [x] Implement Story domain model
+- [x] Implement local file storage for images
+- [x] Implement upload endpoint with validation
+- [x] Implement story repository (create, list, get, update, delete)
+- [x] Implement story service
+- [x] Implement story CRUD handlers
+- [x] Update router with story + upload routes
+- [x] Implement frontend stories API client
+- [x] Implement frontend uploads API client
+- [x] Implement Pinia stories store
+- [x] Build StoryListPage UI
+- [x] Build StoryEditPage UI
+- [x] Build StoryCard component
+- [x] Build ImageUpload component
+- [x] Add StoryEditPage route
+- [x] Test: create → edit → delete story flow
 
 ## Success Criteria
 - Creator can create a story with title, summary, and cover image.

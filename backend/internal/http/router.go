@@ -2,7 +2,9 @@ package http
 
 import (
 	"novel-ai/internal/http/handlers"
+	"novel-ai/internal/http/middleware"
 	"novel-ai/internal/repo"
+	"novel-ai/internal/storage"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -13,8 +15,17 @@ type Router struct {
 	engine *gin.Engine
 }
 
+// RouterConfig holds configuration for router setup
+type RouterConfig struct {
+	Neo4j     *repo.Driver
+	UserRepo  *repo.UserRepo
+	StoryRepo *repo.StoryRepo
+	Storage   *storage.LocalStorage
+	JWTSecret string
+}
+
 // NewRouter creates and configures the Gin router
-func NewRouter(neo4j *repo.Driver) *Router {
+func NewRouter(cfg *RouterConfig) *Router {
 	gin.SetMode(gin.ReleaseMode)
 
 	r := gin.New()
@@ -22,20 +33,58 @@ func NewRouter(neo4j *repo.Driver) *Router {
 	r.Use(gin.Logger())
 
 	// CORS configuration
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:5173"}
-	config.AllowCredentials = true
-	config.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
-	r.Use(cors.New(config))
+	corsConfig := cors.DefaultConfig()
+	corsConfig.AllowOrigins = []string{"http://localhost:5173"}
+	corsConfig.AllowCredentials = true
+	corsConfig.AllowHeaders = []string{"Origin", "Content-Type", "Accept", "Authorization"}
+	r.Use(cors.New(corsConfig))
+
+	// Ensure uploads directory exists
+	cfg.Storage.EnsureUploadsDir()
+
+	// Static file serving for uploads
+	r.Static("/uploads", "./uploads")
 
 	// Health handlers
-	healthHandler := handlers.NewHealthHandler(neo4j)
+	healthHandler := handlers.NewHealthHandler(cfg.Neo4j)
+
+	// Auth handlers
+	authHandler := handlers.NewAuthHandler(cfg.UserRepo, cfg.JWTSecret)
+
+	// Story handlers
+	storyHandler := handlers.NewStoryHandler(cfg.StoryRepo, cfg.Storage)
+
+	// Auth middleware
+	authMiddleware := middleware.Auth(cfg.JWTSecret)
 
 	// API routes
 	api := r.Group("/api")
 	{
 		api.GET("/health", healthHandler.Health)
 		api.GET("/ready", healthHandler.Ready)
+
+		// Auth routes (public)
+		api.POST("/auth/register", authHandler.Register)
+		api.POST("/auth/login", authHandler.Login)
+		api.POST("/auth/logout", authHandler.Logout)
+
+		// Protected routes
+		api.GET("/me", authMiddleware, authHandler.Me)
+
+		// Creator routes
+		creator := api.Group("/creator")
+		creator.Use(authMiddleware, middleware.RequireRole("creator"))
+		{
+			// Story CRUD
+			creator.POST("/stories", storyHandler.CreateStory)
+			creator.GET("/stories", storyHandler.ListStories)
+			creator.GET("/stories/:storyId", storyHandler.GetStory)
+			creator.PATCH("/stories/:storyId", storyHandler.UpdateStory)
+			creator.DELETE("/stories/:storyId", storyHandler.DeleteStory)
+		}
+
+		// Upload routes (requires auth)
+		api.POST("/uploads/images", authMiddleware, storyHandler.UploadImage)
 	}
 
 	return &Router{engine: r}

@@ -12,6 +12,7 @@ import (
 	"novel-ai/internal/config"
 	httpServer "novel-ai/internal/http"
 	"novel-ai/internal/repo"
+	"novel-ai/internal/storage"
 )
 
 func main() {
@@ -37,8 +38,24 @@ func main() {
 		log.Println("Connected to Neo4j successfully")
 	}
 
+	// Create repositories
+	userRepo := repo.NewUserRepo(neo4jDriver)
+	storyRepo := repo.NewStoryRepo(neo4jDriver)
+
+	// Create storage
+	localStorage := storage.NewLocalStorage("./uploads", "")
+
+	// Create router config
+	routerCfg := &httpServer.RouterConfig{
+		Neo4j:     neo4jDriver,
+		UserRepo:  userRepo,
+		StoryRepo: storyRepo,
+		Storage:   localStorage,
+		JWTSecret: cfg.JWTSecret,
+	}
+
 	// Create router
-	router := httpServer.NewRouter(neo4jDriver)
+	router := httpServer.NewRouter(routerCfg)
 
 	// Create HTTP server
 	srv := &http.Server{

@@ -2,52 +2,133 @@
   <div class="story-list-page">
     <header class="header">
       <h1>Quản lý truyện</h1>
-      <button class="btn btn-primary" @click="createStory">
+      <button class="btn btn-primary" @click="showCreateModal = true">
         + Tạo truyện mới
       </button>
     </header>
 
-    <div class="story-grid">
-      <div v-for="story in stories" :key="story.id" class="story-card">
-        <div class="story-cover">
-          <img v-if="story.coverImage" :src="story.coverImage" :alt="story.title" />
-          <div v-else class="placeholder-cover">📚</div>
-        </div>
-        <div class="story-info">
-          <h3>{{ story.title }}</h3>
-          <p class="status" :class="story.status">{{ story.status }}</p>
-          <p class="summary">{{ story.summary }}</p>
-          <div class="actions">
-            <router-link :to="`/creator/stories/${story.id}/map`" class="btn btn-small">
-              Chỉnh sửa
-            </router-link>
-          </div>
-        </div>
-      </div>
+    <div v-if="isLoading" class="loading">
+      Đang tải...
     </div>
 
-    <p v-if="stories.length === 0" class="empty-state">
+    <div v-else-if="error" class="error">
+      {{ error }}
+      <button @click="fetchStories" class="btn btn-small">Thử lại</button>
+    </div>
+
+    <div v-else class="story-grid">
+      <StoryCard
+        v-for="story in stories"
+        :key="story.id"
+        :story="story"
+        @edit="handleEdit"
+        @delete="handleDelete"
+      />
+    </div>
+
+    <p v-if="!isLoading && !error && stories.length === 0" class="empty-state">
       Bạn chưa có truyện nào. Hãy tạo truyện đầu tiên!
     </p>
+
+    <!-- Create Story Modal -->
+    <div v-if="showCreateModal" class="modal-overlay" @click.self="showCreateModal = false">
+      <div class="modal">
+        <h2>Tạo truyện mới</h2>
+        <form @submit.prevent="handleCreate">
+          <div class="form-group">
+            <label>Tiêu đề *</label>
+            <input
+              v-model="createForm.title"
+              type="text"
+              required
+              maxlength="200"
+              placeholder="Nhập tiêu đề truyện"
+            />
+          </div>
+          <div class="form-group">
+            <label>Tóm tắt</label>
+            <textarea
+              v-model="createForm.summary"
+              rows="4"
+              maxlength="2000"
+              placeholder="Nhập tóm tắt truyện (tùy chọn)"
+            ></textarea>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" @click="showCreateModal = false">
+              Hủy
+            </button>
+            <button type="submit" class="btn btn-primary" :disabled="isCreating">
+              {{ isCreating ? 'Đang tạo...' : 'Tạo truyện' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useStoriesStore } from '../../stores/stories'
+import StoryCard from '../../components/StoryCard.vue'
 
-interface Story {
-  id: string
-  title: string
-  summary: string
-  coverImage?: string
-  status: 'draft' | 'published'
+const router = useRouter()
+const storiesStore = useStoriesStore()
+
+const showCreateModal = ref(false)
+const isCreating = ref(false)
+const createForm = ref({
+  title: '',
+  summary: '',
+})
+
+const { stories, isLoading, error } = storiesStore
+
+onMounted(() => {
+  storiesStore.fetchStories()
+})
+
+async function handleCreate() {
+  if (!createForm.value.title.trim()) return
+
+  isCreating.value = true
+  try {
+    const newStory = await storiesStore.createStory({
+      title: createForm.value.title,
+      summary: createForm.value.summary,
+    })
+    showCreateModal.value = false
+    createForm.value = { title: '', summary: '' }
+    // Navigate to edit page
+    router.push(`/creator/stories/${newStory.id}/edit`)
+  } catch (err) {
+    console.error('Failed to create story:', err)
+  } finally {
+    isCreating.value = false
+  }
 }
 
-const stories = ref<Story[]>([])
+function handleEdit(storyId: string) {
+  router.push(`/creator/stories/${storyId}/edit`)
+}
 
-const createStory = () => {
-  // TODO: Implement create story modal/navigation
-  console.log('Create new story')
+async function handleDelete(storyId: string) {
+  if (!confirm('Bạn có chắc muốn xóa truyện này? Hành động này không thể hoàn tác.')) {
+    return
+  }
+
+  try {
+    await storiesStore.deleteStory(storyId)
+  } catch (err) {
+    console.error('Failed to delete story:', err)
+    alert('Không thể xóa truyện. Vui lòng thử lại.')
+  }
+}
+
+async function fetchStories() {
+  await storiesStore.fetchStories()
 }
 </script>
 
@@ -86,15 +167,27 @@ const createStory = () => {
   color: white;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:not(:disabled) {
   opacity: 0.9;
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background: #d1d5db;
 }
 
 .btn-small {
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
-  background: #667eea;
-  color: white;
 }
 
 .story-grid {
@@ -103,76 +196,14 @@ const createStory = () => {
   gap: 1.5rem;
 }
 
-.story-card {
-  background: white;
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.story-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
-}
-
-.story-cover {
-  height: 180px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.story-cover img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.placeholder-cover {
-  font-size: 4rem;
-}
-
-.story-info {
-  padding: 1.5rem;
-}
-
-.story-info h3 {
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
-  color: #333;
-}
-
-.status {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 1rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  text-transform: uppercase;
-  margin-bottom: 0.75rem;
-}
-
-.status.draft {
-  background: #fef3c7;
-  color: #92400e;
-}
-
-.status.published {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.summary {
+.loading, .error {
+  text-align: center;
+  padding: 4rem;
   color: #666;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  margin-bottom: 1rem;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+}
+
+.error {
+  color: #dc2626;
 }
 
 .empty-state {
@@ -180,5 +211,68 @@ const createStory = () => {
   padding: 4rem;
   color: #666;
   font-size: 1.1rem;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.15);
+}
+
+.modal h2 {
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+  margin-top: 1.5rem;
 }
 </style>

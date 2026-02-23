@@ -7,7 +7,7 @@ echo "Starting Novel AI development environment..."
 # Start Neo4j
 echo "Starting Neo4j..."
 cd docker
-docker compose up -d
+docker compose --env-file ../.env up -d
 cd ..
 
 # Check if .env exists

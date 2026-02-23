@@ -37,8 +37,12 @@
             <option value="creator">Tác giả</option>
           </select>
         </div>
-        <button type="submit" class="btn btn-primary btn-block">
-          Đăng ký
+        <div v-if="authStore.error" class="error-message">
+          {{ authStore.error }}
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" :disabled="authStore.isLoading">
+          {{ authStore.isLoading ? 'Đang đăng ký...' : 'Đăng ký' }}
         </button>
       </form>
       <p class="auth-link">
@@ -52,22 +56,24 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores'
 
 const router = useRouter()
+const authStore = useAuthStore()
+
 const username = ref('')
 const email = ref('')
 const password = ref('')
-const role = ref('reader')
+const role = ref<'reader' | 'creator'>('reader')
 
 const handleRegister = async () => {
-  // TODO: Implement register API call
-  console.log('Register:', {
-    username: username.value,
-    email: email.value,
-    password: password.value,
-    role: role.value,
-  })
-  void router.push('/login')
+  try {
+    await authStore.register(username.value, email.value, password.value, role.value)
+    void router.push('/')
+  } catch (err) {
+    // Error is handled by store
+    console.error('Register failed:', err)
+  }
 }
 </script>
 
@@ -172,5 +178,19 @@ const handleRegister = async () => {
 
 .back-link:hover {
   color: #667eea;
+}
+
+.error-message {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 </style>

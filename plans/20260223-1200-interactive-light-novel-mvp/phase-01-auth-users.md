@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-23
 **Priority:** High
-**Status:** ⬜ TODO
+**Status:** ✅ COMPLETED
 **Estimate:** M (1–3 days)
 **Depends on:** Phase 00
 
@@ -175,24 +175,24 @@ RETURN u { .id, .username, .email, .role } AS user;
 - Router guard: redirect to `/login` if unauthenticated on creator routes.
 
 ## Todo List
-- [ ] Create Neo4j user constraints migration
-- [ ] Implement User domain model
-- [ ] Implement user repository (create, findByEmail, findByID)
-- [ ] Implement password hashing with bcrypt
-- [ ] Implement JWT generation and validation
-- [ ] Implement cookie helpers (set/clear)
-- [ ] Implement auth middleware
-- [ ] Implement register endpoint
-- [ ] Implement login endpoint
-- [ ] Implement logout endpoint
-- [ ] Implement /api/me endpoint
-- [ ] Update router.go with auth routes
-- [ ] Implement frontend auth API client
-- [ ] Implement Pinia auth store
-- [ ] Build Login page UI
-- [ ] Build Register page UI
-- [ ] Add router navigation guards
-- [ ] Test: register → login → /api/me → logout flow
+- [x] Create Neo4j user constraints migration
+- [x] Implement User domain model
+- [x] Implement user repository (create, findByEmail, findByID)
+- [x] Implement password hashing with bcrypt
+- [x] Implement JWT generation and validation
+- [x] Implement cookie helpers (set/clear)
+- [x] Implement auth middleware
+- [x] Implement register endpoint
+- [x] Implement login endpoint
+- [x] Implement logout endpoint
+- [x] Implement /api/me endpoint
+- [x] Update router.go with auth routes
+- [x] Implement frontend auth API client
+- [x] Implement Pinia auth store
+- [x] Build Login page UI
+- [x] Build Register page UI
+- [x] Add router navigation guards
+- [x] Test: register → login → /api/me → logout flow
 
 ## Success Criteria
 - User can register and login successfully.

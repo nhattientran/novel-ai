@@ -21,8 +21,11 @@
             placeholder="Nhập mật khẩu"
           />
         </div>
-        <button type="submit" class="btn btn-primary btn-block">
-          Đăng nhập
+        <div v-if="authStore.error" class="error-message">
+          {{ authStore.error }}
+        </div>
+        <button type="submit" class="btn btn-primary btn-block" :disabled="authStore.isLoading">
+          {{ authStore.isLoading ? 'Đang đăng nhập...' : 'Đăng nhập' }}
         </button>
       </form>
       <p class="auth-link">
@@ -35,16 +38,25 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
+import { useAuthStore } from '../stores'
 
 const router = useRouter()
+const route = useRoute()
+const authStore = useAuthStore()
+
 const email = ref('')
 const password = ref('')
 
 const handleLogin = async () => {
-  // TODO: Implement login API call
-  console.log('Login:', { email: email.value, password: password.value })
-  void router.push('/')
+  try {
+    await authStore.login(email.value, password.value)
+    const redirect = route.query.redirect as string
+    void router.push(redirect || '/')
+  } catch (err) {
+    // Error is handled by store
+    console.error('Login failed:', err)
+  }
 }
 </script>
 
@@ -147,5 +159,19 @@ const handleLogin = async () => {
 
 .back-link:hover {
   color: #667eea;
+}
+
+.error-message {
+  background: #fee2e2;
+  color: #dc2626;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 </style>
