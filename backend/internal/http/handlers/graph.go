@@ -34,10 +34,12 @@ func (h *GraphHandler) LoadGraph(c *gin.Context) {
 		return
 	}
 
+	log.Printf("Loading graph for userID=%s, storyID=%s", userID, storyID)
+
 	graph, err := h.graphService.LoadGraph(c.Request.Context(), userID, storyID)
 	if err != nil {
 		log.Printf("Failed to load graph: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to load graph"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

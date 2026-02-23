@@ -24,7 +24,7 @@ func (r *GraphRepo) LoadGraph(ctx context.Context, userID, storyID string) (*dom
 	query := `
 		MATCH (u:User {id: $user_id})-[:CREATED]->(st:Story {id: $story_id})
 		OPTIONAL MATCH (st)-[:STARTS_AT]->(start:Scene)
-		MATCH (st)-[:HAS_SCENE]->(sc:Scene)
+		OPTIONAL MATCH (st)-[:HAS_SCENE]->(sc:Scene)
 		OPTIONAL MATCH (sc)-[r:LEADS_TO]->(to:Scene)<-[:HAS_SCENE]-(st)
 		RETURN
 			st { .id, .title, .status } AS story,
@@ -48,7 +48,19 @@ func (r *GraphRepo) LoadGraph(ctx context.Context, userID, storyID string) (*dom
 	}
 
 	if len(records) == 0 {
-		return nil, nil // story not found or not owned by user
+		// Try to determine if story exists but user doesn't own it
+		checkQuery := `
+			MATCH (st:Story {id: $story_id})
+			RETURN st.id as story_id
+		`
+		checkRecords, checkErr := r.driver.ExecuteRead(ctx, checkQuery, map[string]any{"story_id": storyID})
+		if checkErr != nil {
+			return nil, fmt.Errorf("story not found: %w", checkErr)
+		}
+		if len(checkRecords) == 0 {
+			return nil, fmt.Errorf("story not found: %s", storyID)
+		}
+		return nil, fmt.Errorf("story not owned by user: %s", storyID)
 	}
 
 	return r.recordToGraphResponse(records[0])
@@ -81,7 +93,8 @@ func (r *GraphRepo) recordToGraphResponse(record *neo4j.Record) (*domain.GraphRe
 
 	scenesData, ok := scenesList.([]any)
 	if !ok {
-		return nil, fmt.Errorf("invalid scenes data type")
+		// Handle case where scenes is null (no scenes yet)
+		scenesData = []any{}
 	}
 
 	nodes := make([]domain.GraphNode, 0, len(scenesData))
@@ -123,7 +136,8 @@ func (r *GraphRepo) recordToGraphResponse(record *neo4j.Record) (*domain.GraphRe
 
 	choicesData, ok := choicesList.([]any)
 	if !ok {
-		return nil, fmt.Errorf("invalid choices data type")
+		// Handle case where choices is null (no choices yet)
+		choicesData = []any{}
 	}
 
 	edges := make([]domain.GraphEdge, 0, len(choicesData))

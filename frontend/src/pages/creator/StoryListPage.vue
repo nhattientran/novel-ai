@@ -21,6 +21,7 @@
         v-for="story in stories"
         :key="story.id"
         :story="story"
+        @map="handleMap"
         @edit="handleEdit"
         @delete="handleDelete"
       />
@@ -109,6 +110,10 @@ async function handleCreate() {
   } finally {
     isCreating.value = false
   }
+}
+
+function handleMap(storyId: string) {
+  router.push(`/creator/stories/${storyId}/map`)
 }
 
 function handleEdit(storyId: string) {

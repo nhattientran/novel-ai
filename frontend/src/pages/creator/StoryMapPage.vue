@@ -1,10 +1,13 @@
 <template>
   <div class="story-map-page">
     <StoryMapHeader
-      :title="store.storyTitle"
+      :title="store.storyTitle || 'Đang tải...'"
       @add-scene="addScene"
       @publish="publishStory"
     />
+    <div v-if="store.loading" class="loading-overlay">
+      <div class="loading-spinner">Đang tải story map...</div>
+    </div>
 
     <div class="map-container">
       <VueFlow
@@ -76,7 +79,7 @@ const nodeTypes: Record<string, any> = {
 }
 
 // State
-const storyId = route.params.id as string
+const storyId = route.params.storyId as string
 const selectedNode = ref<Node<SceneNodeData> | null>(null)
 const showChoiceModal = ref(false)
 const isEditingChoice = ref(false)
@@ -270,5 +273,24 @@ function publishStory() {
 
 .map-container :deep(.vue-flow) {
   flex: 1;
+}
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.loading-spinner {
+  padding: 20px 40px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-size: 16px;
+  color: #374151;
 }
 </style>

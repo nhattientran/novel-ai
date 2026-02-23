@@ -9,6 +9,9 @@
       <span class="status" :class="story.status">{{ formatStatus(story.status) }}</span>
       <p class="summary">{{ story.summary || 'Chưa có tóm tắt' }}</p>
       <div class="actions">
+        <button class="btn btn-small btn-map" @click="$emit('map', story.id)">
+          Sơ đồ
+        </button>
         <button class="btn btn-small btn-edit" @click="$emit('edit', story.id)">
           Chỉnh sửa
         </button>
@@ -30,6 +33,7 @@ interface Props {
 defineProps<Props>()
 
 defineEmits<{
+  map: [storyId: string]
   edit: [storyId: string]
   delete: [storyId: string]
 }>()
@@ -133,6 +137,15 @@ function formatStatus(status: string): string {
   font-size: 0.875rem;
   cursor: pointer;
   transition: all 0.3s;
+}
+
+.btn-map {
+  background: #10b981;
+  color: white;
+}
+
+.btn-map:hover {
+  background: #059669;
 }
 
 .btn-edit {
