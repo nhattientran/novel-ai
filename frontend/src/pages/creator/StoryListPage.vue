@@ -71,6 +71,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { storeToRefs } from 'pinia'
 import { useStoriesStore } from '../../stores/stories'
 import StoryCard from '../../components/StoryCard.vue'
 
@@ -84,7 +85,7 @@ const createForm = ref({
   summary: '',
 })
 
-const { stories, isLoading, error } = storiesStore
+const { stories, isLoading, error } = storeToRefs(storiesStore)
 
 onMounted(() => {
   storiesStore.fetchStories()
