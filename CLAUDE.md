@@ -14,17 +14,18 @@ Novel AI is an interactive light novel platform with a Vue 3 frontend and Go bac
 - **Backend**: Go 1.23+ + Gin + Neo4j (neo4j-go-driver/v5)
 - **Database**: Neo4j (graph database for story/scene/choice relationships)
 - **Infrastructure**: Docker Compose for Neo4j
+- **Package Manager**: pnpm (frontend)
 
 ## Common Commands
 
 ### Frontend
 ```bash
 cd frontend
-npm install
-npm run dev      # Start dev server at http://localhost:5173
-npm run build    # Production build (vue-tsc && vite build)
-npm run preview  # Preview production build
-npm run lint     # ESLint on .vue,.ts,.tsx files
+pnpm install       # or npm install
+pnpm dev         # Start dev server at http://localhost:5173
+pnpm build       # Production build, output to `dist/`
+pnpm preview     # Preview production build
+pnpm lint        # ESLint on .vue,.ts,.tsx files
 ```
 
 ### Backend
@@ -39,7 +40,18 @@ go run ./cmd/api      # Start API server at http://localhost:8080
 cd docker && docker compose up -d   # Start Neo4j at http://localhost:7474
 ```
 
+### Quick Start
+```bash
+./scripts/dev.sh   # Setup: start Neo4j, create .env if missing
+```
+
 ## Architecture
+
+### Project Structure
+- `docs/` - Documentation (PRD.md)
+- `plans/` - Implementation plans with TODO tasks
+- `scripts/` - Development utility scripts
+- `shared/openapi/` - OpenAPI specification
 
 ### Frontend Structure
 - `src/pages/` - Route-level components (HomePage, LoginPage, StoryListPage, StoryMapPage, ReadPage)
