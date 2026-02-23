@@ -123,13 +123,3 @@ func (r *UserRepo) recordToUser(record *neo4j.Record, includePassword bool) (*do
 
 	return user, nil
 }
-
-// getString safely extracts a string value from a map
-func getString(m map[string]any, key string) string {
-	if v, ok := m[key]; ok {
-		if s, ok := v.(string); ok {
-			return s
-		}
-	}
-	return ""
-}

@@ -4,6 +4,7 @@ import (
 	"novel-ai/internal/http/handlers"
 	"novel-ai/internal/http/middleware"
 	"novel-ai/internal/repo"
+	"novel-ai/internal/services"
 	"novel-ai/internal/storage"
 
 	"github.com/gin-contrib/cors"
@@ -17,11 +18,14 @@ type Router struct {
 
 // RouterConfig holds configuration for router setup
 type RouterConfig struct {
-	Neo4j     *repo.Driver
-	UserRepo  *repo.UserRepo
-	StoryRepo *repo.StoryRepo
-	Storage   *storage.LocalStorage
-	JWTSecret string
+	Neo4j       *repo.Driver
+	UserRepo    *repo.UserRepo
+	StoryRepo   *repo.StoryRepo
+	SceneRepo   *repo.SceneRepo
+	ChoiceRepo  *repo.ChoiceRepo
+	GraphRepo   *repo.GraphRepo
+	Storage     *storage.LocalStorage
+	JWTSecret   string
 }
 
 // NewRouter creates and configures the Gin router
@@ -54,6 +58,18 @@ func NewRouter(cfg *RouterConfig) *Router {
 	// Story handlers
 	storyHandler := handlers.NewStoryHandler(cfg.StoryRepo, cfg.Storage)
 
+	// Scene service and handlers
+	sceneService := services.NewSceneService(cfg.SceneRepo)
+	sceneHandler := handlers.NewSceneHandler(sceneService)
+
+	// Choice service and handlers
+	choiceService := services.NewChoiceService(cfg.ChoiceRepo)
+	choiceHandler := handlers.NewChoiceHandler(choiceService)
+
+	// Graph service and handlers
+	graphService := services.NewGraphService(cfg.GraphRepo)
+	graphHandler := handlers.NewGraphHandler(graphService)
+
 	// Auth middleware
 	authMiddleware := middleware.Auth(cfg.JWTSecret)
 
@@ -81,6 +97,23 @@ func NewRouter(cfg *RouterConfig) *Router {
 			creator.GET("/stories/:storyId", storyHandler.GetStory)
 			creator.PATCH("/stories/:storyId", storyHandler.UpdateStory)
 			creator.DELETE("/stories/:storyId", storyHandler.DeleteStory)
+
+			// Scene CRUD
+			creator.POST("/stories/:storyId/scenes", sceneHandler.CreateScene)
+			creator.GET("/stories/:storyId/scenes/:sceneId", sceneHandler.GetScene)
+			creator.PATCH("/stories/:storyId/scenes/:sceneId", sceneHandler.UpdateScene)
+			creator.DELETE("/stories/:storyId/scenes/:sceneId", sceneHandler.DeleteScene)
+
+			// Start scene
+			creator.PUT("/stories/:storyId/start/:sceneId", sceneHandler.SetStartScene)
+
+			// Choice management
+			creator.POST("/stories/:storyId/choices", choiceHandler.CreateChoice)
+			creator.PATCH("/stories/:storyId/choices", choiceHandler.UpdateChoice)
+			creator.DELETE("/stories/:storyId/choices", choiceHandler.DeleteChoice)
+
+			// Graph loading
+			creator.GET("/stories/:storyId/graph", graphHandler.LoadGraph)
 		}
 
 		// Upload routes (requires auth)

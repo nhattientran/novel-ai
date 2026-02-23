@@ -41,17 +41,23 @@ func main() {
 	// Create repositories
 	userRepo := repo.NewUserRepo(neo4jDriver)
 	storyRepo := repo.NewStoryRepo(neo4jDriver)
+	sceneRepo := repo.NewSceneRepo(neo4jDriver)
+	choiceRepo := repo.NewChoiceRepo(neo4jDriver)
+	graphRepo := repo.NewGraphRepo(neo4jDriver)
 
 	// Create storage
 	localStorage := storage.NewLocalStorage("./uploads", "")
 
 	// Create router config
 	routerCfg := &httpServer.RouterConfig{
-		Neo4j:     neo4jDriver,
-		UserRepo:  userRepo,
-		StoryRepo: storyRepo,
-		Storage:   localStorage,
-		JWTSecret: cfg.JWTSecret,
+		Neo4j:      neo4jDriver,
+		UserRepo:   userRepo,
+		StoryRepo:  storyRepo,
+		SceneRepo:  sceneRepo,
+		ChoiceRepo: choiceRepo,
+		GraphRepo:  graphRepo,
+		Storage:    localStorage,
+		JWTSecret:  cfg.JWTSecret,
 	}
 
 	// Create router
