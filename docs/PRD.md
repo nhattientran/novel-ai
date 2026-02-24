@@ -1,83 +1,90 @@
 # Tài Liệu Yêu Cầu Sản Phẩm (PRD)
-**Tên dự án:** [Tên Dự Án Của Bạn] - Nền tảng Light Novel Tương Tác
-**Phiên bản:** 1.0 (MVP)
-**Người tạo:** [Tên Của Bạn]
-**Ngày tạo:** 23/02/2026
+**Tên dự án:** Nền tảng Light Novel Tương Tác
+**Phiên bản:** 1.3 (AI-Ready Tech Stack & Kiến trúc GraphRAG)
+**Ngày cập nhật:** 24/02/2026
 
 ---
 
 ## 1. Tổng Quan Sản Phẩm (Product Overview)
-**Mục tiêu:** Xây dựng một nền tảng web application cho phép người dùng sáng tạo, xuất bản và trải nghiệm các bộ light novel có cốt truyện rẽ nhánh (interactive fiction / visual novel dạng text). 
-**Vấn đề giải quyết:** Các công cụ viết truyện truyền thống không hỗ trợ tốt việc quản lý cốt truyện phân nhánh phức tạp. Tác giả dễ bị rối logic, trong khi người đọc thiếu đi sự tương tác làm thay đổi kết cục câu chuyện.
-**Giải pháp:** Cung cấp giao diện trực quan (Node-based Map) để tác giả thiết kế mạch truyện và một giao diện đọc mượt mà cho độc giả, được vận hành bởi hệ cơ sở dữ liệu đồ thị (Graph Database) tối ưu cho việc truy vấn rẽ nhánh.
+**Mục tiêu:** Xây dựng web application sáng tạo và trải nghiệm light novel có cốt truyện rẽ nhánh. Hệ thống quản lý điểm quan hệ, hồ sơ tính cách nhân vật và được thiết kế kiến trúc dữ liệu sẵn sàng cho AI sinh tạo (Generative AI) tích hợp sâu vào cốt truyện.
+**Giải pháp:** Sử dụng giao diện bản đồ Node (Node-based Map) cho tác giả. Vận hành logic rẽ nhánh, điểm hảo cảm và phân loại tính cách thông qua cơ sở dữ liệu đồ thị Neo4j. Chuẩn bị sẵn nền tảng Vector Search để LLM (Mô hình ngôn ngữ lớn) có thể truy xuất ngữ cảnh chính xác.
 
 ---
 
-## 2. Đối Tượng Người Dùng (Target Audience)
-Hệ thống phân chia làm 2 nhóm người dùng chính:
-1. **Creator (Tác giả):** Những người muốn viết và thiết kế game text-based, light novel tương tác. Cần công cụ trực quan để quản lý các nhánh truyện phức tạp mà không cần biết code.
-2. **Reader (Người đọc):** Độc giả yêu thích thể loại truyện tương tác, nhập vai. Thích tự mình đưa ra quyết định để thay đổi diễn biến câu chuyện.
+## 2. Ngăn Xếp Công Nghệ (Tech Stack)
+
+
+
+### 2.1. Frontend (Giao diện người dùng)
+* **Core Framework:** Vue.js 3 (Composition API). Ưu tiên tốc độ phản hồi và hệ sinh thái phong phú.
+* **State Management:** Pinia (Lưu trữ trạng thái rẽ nhánh, túi đồ, điểm hảo cảm của người đọc theo thời gian thực).
+* **Story Mapping:** Vue Flow (`@vue-flow/core`). Xây dựng giao diện kéo-thả trực quan cho Creator Mode.
+* **Styling:** TailwindCSS V4 (Khuyến nghị để build UI nhanh và đồng nhất).
+
+### 2.2. Backend (Xử lý Logic & API)
+* **Ngôn ngữ:** Golang.
+* **Web Framework:** Fiber (Xử lý Concurrency xuất sắc, đáp ứng hàng ngàn lượt chọn rẽ nhánh cùng lúc).
+* **Database Driver:** `neo4j-go-driver` (Kết nối chính thức và bảo mật với Neo4j).
+* **AI Orchestration (Phase 2):** LangChainGo (`github.com/tmc/langchaingo`) hoặc tự viết Service gọi trực tiếp Google Gemini API.
+
+### 2.3. Cơ Sở Dữ Liệu (Database)
+* **Graph Database:** Neo4j (Phiên bản 5.x trở lên).
+* **Tính năng bắt buộc:**
+  * **Cypher Query Language:** Truy vấn mối quan hệ rẽ nhánh siêu tốc.
+  * **Neo4j Vector Index:** (Chuẩn bị cho Phase 2) Lưu trữ Vector Embeddings của nội dung truyện và tính cách nhân vật để hỗ trợ tính năng tìm kiếm ngữ nghĩa (Semantic Search) cho AI.
 
 ---
 
-## 3. Kiến Trúc Kỹ Thuật (Tech Stack)
-* **Frontend:** Vue.js 3 (Composition API)
-  * Quản lý trạng thái: Pinia.
-  * Giao diện sơ đồ truyện: Vue Flow.
-* **Backend:** Golang (Gin hoặc Fiber framework)
-  * Xử lý logic API với hiệu năng cao, concurrency tốt.
-* **Database:** Neo4j (Graph Database)
-  * Ngôn ngữ truy vấn: Cypher.
-  * Tối ưu hóa việc lưu trữ Cảnh (Nodes) và Lựa chọn/Nhánh (Relationships).
+## 3. Tính Năng Cốt Lõi (MVP Scope)
 
----
-
-## 4. Tính Năng Cốt Lõi (MVP Scope)
-
-### 4.1. Creator Mode (Dành cho Tác giả)
+### 3.1. Creator Mode (Dành cho Tác giả)
 | Tính năng | Mô tả chi tiết |
 | :--- | :--- |
 | **Story Management** | Tạo, sửa, xóa thông tin bộ truyện (Tên, Ảnh bìa, Tóm tắt). |
-| **Visual Story Map** | Giao diện kéo thả sử dụng Vue Flow. Hiển thị toàn bộ cấu trúc rẽ nhánh của câu chuyện dưới dạng sơ đồ Node. |
-| **Scene Editor** | Trình soạn thảo văn bản cho từng Node (Cảnh). Cho phép nhập text, upload ảnh minh họa (background/character). |
-| **Choice Creator** | Tạo các liên kết (Edges) giữa các Node. Đặt tên cho lựa chọn (ví dụ: "Mở cửa"). |
-| **Publishing** | Chuyển trạng thái truyện từ Draft (Bản nháp) sang Published (Công khai). |
+| **Character & Trait Setup** | Tạo nhân vật (NPCs), viết tiểu sử (Description) và gắn nhãn Tính cách (Traits). Việc viết mô tả chi tiết là tiền đề để làm Vector Embeddings cho AI sau này. |
+| **Visual Story Map** | Giao diện kéo thả hiển thị toàn bộ cấu trúc rẽ nhánh (Nodes & Edges). |
+| **Scene Editor** | Soạn thảo nội dung cho từng Node (Cảnh). Cài đặt cảnh Bắt đầu / Kết thúc. |
+| **Choice & Effect Creator** | Tạo các liên kết rẽ nhánh (`LEADS_TO`). Thiết lập "Effect" (VD: `{"target": "char_A", "score": +5}`). |
 
-### 4.2. Reader Mode (Dành cho Người đọc)
+### 3.2. Reader Mode (Dành cho Người đọc)
 | Tính năng | Mô tả chi tiết |
 | :--- | :--- |
-| **Story Discovery** | Trang chủ hiển thị danh sách các bộ truyện đã được xuất bản để người dùng lựa chọn. |
-| **Interactive Reading** | Giao diện đọc hiển thị nội dung của từng Scene. Cung cấp các nút bấm (Choices) ở cuối để người dùng quyết định hành động tiếp theo. |
-| **Progress Tracking** | Lưu lại ID của Scene hiện tại (thông qua Pinia và Local Storage/Database) để người đọc có thể tiếp tục dang dở. |
-| **History / Undo** | Cho phép xem lại lịch sử các lựa chọn đã đưa ra hoặc quay lại Node trước đó (Save/Load cơ bản). |
+| **Discovery by Traits** | Tìm kiếm truyện dựa trên tính cách nhân vật (VD: Lọc truyện có nhân vật "Tsundere"). |
+| **Playthrough Management** | Tạo và quản lý các lượt chơi (Save files) độc lập. |
+| **Interactive Reading** | Đọc nội dung Scene và chọn hành động tiếp theo. |
+| **Affinity Tracking** | Tự động tính toán điểm quan hệ với các nhân vật dựa trên các quyết định đã chọn. |
+| **History Tracking** | **(Quan trọng cho AI)** Hệ thống lưu lại toàn bộ các Scene mà người chơi đã đi qua theo thứ tự để làm "Trí nhớ" (Context) cho AI sau này. |
 
 ---
 
-## 5. Yêu Cầu Dữ Liệu Cơ Bản (Database Schema - Neo4j)
+## 4. Mô Hình Dữ Liệu (Graph Database Schema - Neo4j)
 
-**Nodes:**
-* `(:User {id, username, email, password_hash, role})`
-* `(:Story {id, title, summary, cover_image, status, created_at})`
-* `(:Scene {id, content, image_url, is_start: boolean, is_end: boolean})`
+**Các Nodes (Thực thể chính):**
+* `(:User {id, username})`
+* `(:Story {id, title, status})`
+* `(:Scene {id, content, is_start, content_embedding: [Float]})` *(Thêm mảng Float chuẩn bị cho Vector Search)*
+* `(:Character {id, name, description, desc_embedding: [Float]})`
+* `(:Trait {id, name})`
+* `(:Playthrough {id, last_played_at})`
 
-**Relationships:**
-* `(User)-[:CREATED]->(Story)`
+**Các Relationships (Mối quan hệ):**
 * `(Story)-[:HAS_SCENE]->(Scene)`
-* `(Story)-[:STARTS_AT]->(Scene)`
-* `(Scene)-[:LEADS_TO {choice_text: "Text hiển thị"}]->(Scene)`
+* `(Story)-[:HAS_CHARACTER]->(Character)`
+* `(Character)-[:HAS_TRAIT]->(Trait)`
+* `(Scene)-[:LEADS_TO {choice_text, effects}]->(Scene)`
+* `(User)-[:HAS_PLAYTHROUGH]->(Playthrough)`
+* `(Playthrough)-[:CURRENT_SCENE]->(Scene)`
+* `(Playthrough)-[:AFFINITY_WITH {score}]->(Character)`
+* `(Playthrough)-[:VISITED {order: Integer}]->(Scene)` *(MỚI - Lưu lại vết (footprint) của người chơi để AI đọc hiểu diễn biến câu chuyện)*
 
 ---
 
-## 6. Yêu Cầu Phi Chức Năng (Non-Functional Requirements)
-* **Hiệu năng:** Backend Golang cần đảm bảo thời gian phản hồi API dưới 200ms cho các truy vấn chuyển cảnh tiếp theo.
-* **Trải nghiệm UX:** Chuyển cảnh ở chế độ Reader phải mượt mà, không giật lag, ưu tiên preload (tải trước) nội dung và hình ảnh của các nhánh tiếp theo liền kề.
-* **Responsive:** Chế độ Reader phải hoạt động hoàn hảo trên thiết bị di động (Mobile-first approach). Chế độ Creator có thể ưu tiên Desktop/Tablet để có không gian thao tác với Story Map.
+## 5. Yêu Cầu Phi Chức Năng (Non-Functional Requirements)
+* **Transaction Safety:** Đảm bảo tính toàn vẹn dữ liệu khi vừa chuyển cảnh (Scene) vừa cập nhật điểm (Affinity) trong cùng một query.
+* **Khả năng mở rộng AI (AI Scalability):** Dữ liệu text của Scene và Character phải được thiết kế độ dài phù hợp để sau này chuyển đổi thành Vector (Embeddings) không bị tràn token context window của LLM.
 
 ---
 
-## 7. Các Tính Năng Cho Giai Đoạn 2 (Out of Scope for MVP)
-* Hệ thống biến số (Variables) và Điều kiện (Conditions) cho các nhánh (ví dụ: cần có chìa khóa mới hiển thị lựa chọn mở cửa).
-* Hệ thống Inventory (Túi đồ) và Stats (Chỉ số nhân vật).
-* Tích hợp AI hỗ trợ tác giả viết tiếp cốt truyện.
-* Đa ngôn ngữ.
-* Nền tảng kiếm tiền (Monetization) cho tác giả.
+## 6. Lộ Trình Phát Triển Tiếp Theo (Phase 2 - GraphRAG & Generative AI)
+* **Dynamic AI Conversations:** Người chơi có thể gõ text tự do để nói chuyện với nhân vật tại một số Cảnh (Scene) nhất định. Backend sẽ dùng LangChainGo lấy điểm hảo cảm (`AFFINITY_WITH`), tính cách (`Trait`) và lịch sử (`VISITED`) đưa vào Prompt cho Google Gemini sinh ra câu trả lời.
+* **AI Lore Assistant:** Công cụ giúp tác giả tự động tạo thêm nhánh truyện hoặc sinh ra lời thoại nhân vật phụ dựa trên văn phong đã được lưu trữ trong database.

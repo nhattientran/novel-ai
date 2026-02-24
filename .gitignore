@@ -43,3 +43,4 @@ logs/
 backend/uploads/
 uploads/
 /.claude
+/.agent
